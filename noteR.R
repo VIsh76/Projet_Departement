@@ -1,7 +1,7 @@
-cor(data$"X001656082"[1:35],data$"X001694169"[1:35])
-ind(data$"X001656082")
-data$"X001694169"[1:36]
-length(data$"X001694169")
-data[1,][which(!is.na(data[1,))]
-
+#Ouverture des deux csv dans les data.frame dico et data
+data=read.csv("Data_M.csv",header=TRUE)
+dico=read.csv("Dico_M.csv",header=TRUE)
+#On construit le data.frame qui ne retient que les variables dont le nom contient "Indusrtie"
 Test=data[,grep("Industrie",dico$def)+2]
+#On supprime la série 1656082 qui est celle qu'on veut expliquée
+Test$"X001656082"=NULL
