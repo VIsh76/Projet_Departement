@@ -1,0 +1,88 @@
+SANS DECALAGE
+
+Summary de la régression linéaire pour les 9 variables les plus corrêlées avec le nombre de défaillance d'entreprises en industrie.
+
+Call:
+lm(formula = Var ~ Exp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-17.093 -11.781  -3.656  11.681  25.159 
+
+Coefficients: (1 not defined because of singularities)
+                Estimate Std. Error t value Pr(>|t|)
+(Intercept)   -7.847e+02  8.581e+02  -0.914    0.369
+ExpX001656083  8.522e-03  8.339e-02   0.102    0.919
+ExpX001656092  3.008e-02  3.298e-02   0.912    0.370
+ExpX001656084  6.731e-02  9.489e-02   0.709    0.484
+ExpX001777165  2.785e+00  1.634e+00   1.704    0.100
+ExpX001777527         NA         NA      NA       NA
+ExpX001627052  8.756e+00  8.957e+00   0.978    0.337
+ExpX001625936 -3.986e-01  6.724e-01  -0.593    0.558
+ExpX001777423 -4.417e-01  1.538e+00  -0.287    0.776
+ExpX001652308 -1.316e+00  2.723e+00  -0.483    0.633
+
+Residual standard error: 14.94 on 26 degrees of freedom
+Multiple R-squared:  0.8447,    Adjusted R-squared:  0.797 
+F-statistic: 17.68 on 8 and 26 DF,  p-value: 1.07e-08
+
+Summary de la régression linéaire pour les 9 variables les plus corrêlées avec le nombre de défaillance d'entreprises en agriculture.
+
+Call:
+lm(formula = Var ~ Exp)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-12.5561  -2.5727   0.2707   4.0676  11.9328 
+
+Coefficients: (1 not defined because of singularities)
+               Estimate Std. Error t value Pr(>|t|)   
+(Intercept)   184.75359   73.34366   2.519  0.01825 * 
+ExpX001777005  -0.42459    0.14661  -2.896  0.00756 **
+ExpX001777318        NA         NA      NA       NA   
+ExpX001626845  -1.91708    0.97761  -1.961  0.06068 . 
+ExpX001580474  -0.64869    0.38925  -1.667  0.10762   
+ExpX001568551  -0.19947    0.17099  -1.167  0.25398   
+ExpX001568955   1.98381    0.89321   2.221  0.03527 * 
+ExpX001653370  -0.03996    0.61961  -0.064  0.94908   
+ExpX001625991   1.40629    1.01303   1.388  0.17685   
+ExpX001777028   0.23183    0.26205   0.885  0.38445   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 6.684 on 26 degrees of freedom
+Multiple R-squared:  0.7786,    Adjusted R-squared:  0.7105 
+F-statistic: 11.43 on 8 and 26 DF,  p-value: 8.638e-07
+
+AVEC DECALAGE
+
+Summary de la régression linéaire pour les 9 variables les plus corrêlées avec le nombre de défaillance d'entreprises en agriculture.
+
+
+Call:
+lm(formula = Var ~ Exp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-48.009  -7.715   2.578   9.715  26.348 
+
+Coefficients:
+                Estimate Std. Error t value Pr(>|t|)  
+(Intercept)   3190.38572 2400.59124   1.329   0.1975  
+ExpX001565438   -0.18577    0.08586  -2.163   0.0416 *
+ExpX001626586   15.68876   15.02658   1.044   0.3078  
+ExpX001626664  -62.49279   26.91878  -2.322   0.0299 *
+ExpX001652679   -6.59155   13.15959  -0.501   0.6214  
+ExpX001652995  -35.31721   22.30477  -1.583   0.1276  
+ExpX001565217    0.15357    0.10056   1.527   0.1410  
+ExpX001652697   61.93437   29.73297   2.083   0.0491 *
+ExpX001653122    5.64056    3.55541   1.586   0.1269  
+ExpX001653950   -1.16382    3.20689  -0.363   0.7201  
+ExpX001776823   -0.47724    2.68537  -0.178   0.8606  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 20.47 on 22 degrees of freedom
+Multiple R-squared:  0.7444,    Adjusted R-squared:  0.6282 
+F-statistic: 6.406 on 10 and 22 DF,  p-value: 0.0001435
+
