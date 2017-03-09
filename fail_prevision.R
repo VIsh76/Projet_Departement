@@ -24,14 +24,14 @@ Res2=X[rownames(Res)]
 Res2[serie]=NULL
 
 #On fait la régression linéaire
-Exp=data.matrix(Res2)
+Exp=data.matrix(scale(Res2))
 Var=data.matrix(Var)
 model=lm(Var~Exp)
 
 return(model)
 }
 
-Fail_Prevision_decalage  = function(serie,decal,data,dico)
+Fail_Prevision_decalage  = function(serie,decal,nbv,data,dico)
 {
 #On retire les trois derniers mois pour enlever la majeur partie des valeurs NA
 X=data[1:(35-decal),3:ncol(data)]
@@ -45,8 +45,8 @@ val=c(V)
 names=c(rownames(V))
 v=data.frame(val,row.names=names)
 v=v[order(-v$val), , drop = FALSE]
-val=v[1:10,1]
-names=rownames(v)[1:10]
+val=v[1:nbv+1,1]
+names=rownames(v)[1:nbv+1]
 Res=data.frame(val,row.names=names)
 
 #On récupère les valeurs associées et on enleve la série (qui est correlé à 1 avec elle même)
@@ -54,7 +54,7 @@ Res2=X[rownames(Res)]
 Res2[serie]=NULL
 
 #On fait la régression linéaire
-Exp=data.matrix(Res2)
+Exp=data.matrix(scale(Res2))
 Var=data.matrix(Var)
 model=lm(Var~Exp)
 
@@ -67,6 +67,4 @@ modelInd=Fail_Prevision(serie="X001656082",data,dico)
 modelAgr=Fail_Prevision(serie="X001656081",data,dico)
 
 #Industrie avec decalage
-modelInd2=Fail_Prevision_decalage(serie="X001656082",2,data,dico)
-
-
+modelInd2=Fail_Prevision_decalage(serie="X001656082",2,10,data,dico)
