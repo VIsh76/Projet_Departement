@@ -23,6 +23,8 @@ Res=data.frame(val,row.names=names)
 Res2=X[rownames(Res)]
 Res2[serie]=NULL
 
+
+
 #On fait la régression linéaire
 Exp=data.matrix(scale(Res2))
 Var=data.matrix(Var)
@@ -59,6 +61,60 @@ Var=data.matrix(Var)
 model=lm(Var~Exp)
 
 return(model)
+}
+
+readDico1 = function(serie)
+{
+s=unlist(strsplit(serie,"ExpX00"))
+dico[which(dico$IDBANK==s[2]),]
+}
+
+ReadDico1 = function(Lserie)
+{
+for ( i in 1:nrow(Lserie)) { 
+print(readDico1(Z[i,1]))
+}
+}
+
+readDico2 = function(serie)
+{
+s=unlist(strsplit(serie,"X00"))
+dico[which(dico$IDBANK==s[2]),]
+}
+
+ReadDico2 = function(Lserie)
+{
+for ( i in 1:nrow(Lserie)) { 
+print(readDico2(Z[i,1]))
+}
+}
+
+gain.info = function(serie,data,dico)
+{
+library(mlr)
+library(FSelector)
+X=data[1:35,3:ncol(data)]
+Var=X["X001656082"]
+#On calcule les corrélations avec la série
+V=abs(cor(X,Var))
+
+#On les classe par ordres décroissant
+val=c(V)
+names=c(rownames(V))
+v=data.frame(val,row.names=names)
+v=v[order(-v$val), , drop = FALSE]
+val=v[1:1000,1]
+names=rownames(v)[1:1000]
+Res=data.frame(val,row.names=names)
+
+Res2=X[rownames(Res)]
+
+P.task=makeClassifTask(data = Res2, target = "X001656082")
+u=generateFilterValuesData(P.task, method = "information.gain")
+U=u$data
+U=U[order(-U$information.gain), , drop = FALSE]
+M=U$name[1:10]
+ReadDico2(data.frame(M))
 }
 
 #Industrie
