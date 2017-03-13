@@ -28,7 +28,7 @@ print(selection_X("premier_resultat.txt"))
 X= selection_X("premier_resultat.txt")
 
 def selection_ligne(filename):
-    f = open(filename, "r")
+    f = open(filename, encoding = "ISO-8859-1")
     data = f.readlines()
     return data
 
@@ -59,4 +59,4 @@ def affiche(resultat):
             print(resultat[i][j])
         print('\n')
 
-affiche(names_to_dico(selection_ligne("MARTIN.TXT"), "Dico_M.csv")
+affiche(names_to_dico(selection_ligne("test.txt"), "Dico_M.csv"))
