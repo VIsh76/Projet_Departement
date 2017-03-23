@@ -8,7 +8,7 @@ data_path = "../Data_M.csv"
 label_path = "../Dico_M.csv"
 
 
-def read_data(fp_path, ratio):
+def read_data(fp_path, y_name, ratio):
   '''
   A function to read data files. It will replace NA with mode and normalize datas.
 
@@ -34,8 +34,11 @@ def read_data(fp_path, ratio):
   # normalize data to [0, 1]
   name_cols = np.array(fp_data.columns) 
   for name in name_cols[2:]:
-    fp_data[name].fillna(mode(fp_data[name]).mode[0], inplace = True)
-    fp_data[name] = (fp_data[name] - fp_data[name].min()) / (fp_data[name].max() - fp_data[name].min())
+    if name in y_name:
+      pass
+    else:
+      fp_data[name].fillna(mode(fp_data[name]).mode[0], inplace = True)
+      fp_data[name] = (fp_data[name] - fp_data[name].min()) / (fp_data[name].max() - fp_data[name].min())
 
   return np.array(fp_data)[:, 1], np.array(fp_data)[:, 2:], dict(zip(np.array(fp_data.columns)[2:], range(fp_data.shape[1] - 2)))  
   
@@ -72,4 +75,4 @@ if "__name__" == "__main__":
   y_train = datas[:, y_index]
   x_train = np.delete(datas, y_index, axis = 1)
 
-  
+ 
