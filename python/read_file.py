@@ -29,7 +29,10 @@ def read_data(fp_path, y_name, ratio):
   # delete invalid colomns
   for i in range(cols.shape[0]):
     if cols[i] > fp_data.shape[0] * ratio or fp_data[name_cols[i]].min() == fp_data[name_cols[i]].max():
-      fp_data = fp_data.drop(name_cols[i], 1)
+      if name_cols[i] in y_name:
+        pass
+      else:
+        fp_data = fp_data.drop(name_cols[i], 1)
 
   # normalize data to [0, 1]
   name_cols = np.array(fp_data.columns) 
