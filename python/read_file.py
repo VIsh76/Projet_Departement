@@ -40,9 +40,7 @@ def read_data(fp_path, y_name, ratio):
     else:
       fp_data[name].fillna(mode(fp_data[name]).mode[0], inplace = True)
       fp_data[name] = (fp_data[name] - fp_data[name].min()) / (fp_data[name].max() - fp_data[name].min())
-
-  return np.array(fp_data)[:, 1], np.array(fp_data)[:, 2:], dict(zip(np.array(fp_data.columns)[2:], range(fp_data.shape[1] - 2)))
-
+  return np.array(fp_data)[:, 1], np.array(fp_data)[:, 2:], dict(zip(np.array(fp_data.columns)[2:], range(fp_data.shape[1] - 2))), dict(zip(range(fp_data.shape[1] - 2), np.array(fp_data.columns)[2:]))
 
 def num_missing(x):
   return sum(x.isnull())
@@ -67,7 +65,7 @@ def read_label(fp_path):
 if "__name__" == "__main__":
 
   labels, y_name = read_label(label_path)
-  dates, datas, indexs = read_data(data_path, 0.3)
+  dates, datas, indexs, indexs_inv = read_data(data_path, 0.3)
 
   # seperate feature(x_train) and prediction(y_train)
   y_index = [indexs[i] for i in y_name]
