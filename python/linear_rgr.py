@@ -33,6 +33,9 @@ if os.path.exists("../Data/datas.npy"):
   outfile = open('../Data/indexs.pkl', 'rb')
   indexs = pickle.load(outfile)
   outfile.close()
+  outfile = open('../Data/indexs_inv.pkl', 'rb')
+  indexs_inv = pickle.load(outfile)
+  outfile.close()
   outfile = open('../Data/labels.pkl', 'rb')
   labels = pickle.load(outfile)
   outfile.close()
@@ -43,7 +46,7 @@ if os.path.exists("../Data/datas.npy"):
 else:
   # load datas
   labels, y_name = rf.read_label(label_path)
-  dates, datas, indexs = rf.read_data(data_path, y_name, 0)
+  dates, datas, indexs, indexs_inv = rf.read_data(data_path, y_name, 0)
 
   # save datas
   np.save('../Data/datas.npy', datas)
@@ -51,12 +54,16 @@ else:
   outfile = open('../Data/indexs.pkl', 'wb')
   pickle.dump(indexs, outfile)
   outfile.close()
+  outfile = open('../Data/indexs_inv.pkl', 'wb')
+  pickle.dump(indexs_inv, outfile)
+  outfile.close()
   outfile = open('../Data/labels.pkl', 'wb')
   pickle.dump(labels, outfile)
   outfile.close()
   outfile = open('../Data/y_name.pkl', 'wb')
   pickle.dump(y_name, outfile)
   outfile.close()
+
 
 print("load %d data" % datas.shape[0])
 
