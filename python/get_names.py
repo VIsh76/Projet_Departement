@@ -34,24 +34,29 @@ def select_seuil_lasso(clf):
     return np.array(vec_id)
 
 def test():
-    assert( os.path.exists("../Data/datas.npy"))
-    # load datas
-    # dates, datas, indexs, indexs_inv = rf.read_data(data_path, y_name, 0)
-    datas = np.load('../Data/datas.npy')
-    dates = np.load('../Data/dates.npy')
-    outfile = open('../Data/indexs_inv.pkl', 'rb')
-    indexs_inv = pickle.load(outfile)
-    outfile.close()
-    outfile = open('../Data/indexs.pkl', 'rb')
-    indexs = pickle.load(outfile)
-    outfile.close()
-    outfile = open('../Data/labels.pkl', 'rb')
-    labels = pickle.load(outfile)
-    outfile.close()
-    outfile = open('../Data/y_name.pkl', 'rb')
-    y_name = pickle.load(outfile)
-    outfile.close()
+    if os.path.exists("../Data/datas.npz") and os.path.exists("../Data/datas.pkl"):
+      # load datas
+      with np.load('../Data/datas.npz') as obj:
+        datas = obj['datas']
+        dates = obj['dates']
 
+        with open('../Data/datas.pkl', 'rb') as infile:
+          indexs = pickle.load(infile)
+          labels = pickle.load(infile)
+          y_name = pickle.load(infile)
+
+    else:
+      # load datas
+      labels, y_name = rf.read_label(label_path)
+      dates, datas, indexs = rf.read_data(data_path, y_name, 0)
+
+      # save datas
+      np.savez('../Data/datas.npz', datas=datas, dates=dates)
+      with open('../Data/datas.pkl', 'wb') as outfile:
+        pickle.dump(indexs, outfile)
+        pickle.dump(labels, outfile)
+        pickle.dump(y_name, outfile)
+        
     print("load %d data" % datas.shape[0])
 
     # seperate feature(x_train) and prediction(y_train)
@@ -77,7 +82,7 @@ def test():
     feat_selected = feature_eng.get_support(True)
     print("-----------")
     for i in range(len(feat_selected)):
-        print(indexs_inv[feat_selected[i]])
+        print(indexs.inv[feat_selected[i]])
     print("\n----------------------------------------------")
     print("train model...\n")
     # print(labels)

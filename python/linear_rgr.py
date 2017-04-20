@@ -7,7 +7,7 @@ import read_file as rf
 import numpy as np
 import argparse
 import os, sys
-import pickle
+import cPickle as pickle
 
 data_path = "../Data_M[2005-2017].csv"
 label_path = "../Dico_M[2005-2017].csv"
@@ -38,42 +38,31 @@ def mse(y, yhat):
 print("\nload data: " + data_path.split('/')[-1].split('.')[0])
 
 
-if os.path.exists("../Data/datas.npy"):
+if os.path.exists("../Data/datas.npz") and os.path.exists("../Data/datas.pkl"):
+  print "0"
   # load datas
-  datas = np.load('../Data/datas.npy')
-  dates = np.load('../Data/dates.npy')
-  outfile = open('../Data/indexs.pkl', 'rb')
-  indexs = pickle.load(outfile)
-  outfile.close()
-  outfile = open('../Data/indexs_inv.pkl', 'rb')
-  indexs_inv = pickle.load(outfile)
-  outfile.close()
-  outfile = open('../Data/labels.pkl', 'rb')
-  labels = pickle.load(outfile)
-  outfile.close()
-  outfile = open('../Data/y_name.pkl', 'rb')
-  y_name = pickle.load(outfile)
-  outfile.close()
+  with np.load('../Data/datas.npz') as obj:
+    datas = obj['datas']
+    dates = obj['dates']
+
+  with open('../Data/datas.pkl', 'rb') as infile:
+    indexs = pickle.load(infile)
+    labels = pickle.load(infile)
+    y_name = pickle.load(infile)
+
 else:
+  print "1"
   # load datas
   labels, y_name = rf.read_label(label_path)
-  dates, datas, indexs, indexs_inv = rf.read_data(data_path, y_name, 0)
+  dates, datas, indexs = rf.read_data(data_path, y_name, 0)
 
   # save datas
-  np.save('../Data/datas.npy', datas)
-  np.save('../Data/dates.npy', dates)
-  outfile = open('../Data/indexs.pkl', 'wb')
-  pickle.dump(indexs, outfile)
-  outfile.close()
-  outfile = open('../Data/indexs_inv.pkl', 'wb')
-  pickle.dump(indexs_inv, outfile)
-  outfile.close()
-  outfile = open('../Data/labels.pkl', 'wb')
-  pickle.dump(labels, outfile)
-  outfile.close()
-  outfile = open('../Data/y_name.pkl', 'wb')
-  pickle.dump(y_name, outfile)
-  outfile.close()
+  np.savez('../Data/datas.npz', datas=datas, dates=dates)
+  with open('../Data/datas.pkl', 'wb') as outfile:
+    pickle.dump(indexs, outfile)
+    pickle.dump(labels, outfile)
+    pickle.dump(y_name, outfile)
+  
 
 
 print("load %d data" % datas.shape[0])
