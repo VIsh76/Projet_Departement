@@ -17,7 +17,7 @@ def seperate_dataset(data_x, data_y, train_ratio):
   assert (train_ratio < 1 and train_ratio > 0), "The train ratio should be between 0 and 1."
   data_num = data_x.shape[0]
   sep_ind = int(data_num * train_ratio)
-  return data_x[:sep_ind - 2, :], data_y[2:sep_ind, :], data_x[sep_ind - 2:-5, :], data_y[sep_ind:-3, :]
+  return data_x[:sep_ind - 2, :], data_y[2:sep_ind, :], data_x[sep_ind - 2:-2, :], data_y[sep_ind:, :]
 
 
 def mae(y, yhat):
@@ -83,7 +83,7 @@ print("val  : %d cases" % x_val.shape[0])
 print("\n----------------------------------------------")
 
 print("choose data...\n")
-k = 10
+k = 50
 feature_eng = SelectKBest(mutual_info_regression, k)
 x_train_new = feature_eng.fit_transform(x_train, y_train[:,1])
 x_val_new = feature_eng.transform(x_val)
@@ -128,7 +128,7 @@ print(yhat_val)
 
 
 print("\ntrain elastique net model...\n")
-clf = ElasticNetCV(l1_ratio = [.5, .7, .9, .95, .99, 1], max_iter = 50000)
+clf = ElasticNetCV(l1_ratio = [.5, .7, .9, .95, .99, 1], max_iter = 100000)
 clf.fit(x_train_new, y_train[:, 1])
 yhat_train = clf.predict(x_train_new)
 yhat_val = clf.predict(x_val_new)

@@ -1,12 +1,13 @@
 import read_file as rf
 import numpy as np
 import os, sys
-import pickle
+import cPickle as pickle
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import pandas as pd
 
 data_path = "../Data_M[2005-2017].csv"
@@ -37,37 +38,30 @@ def mse(y, yhat):
 
 print("\nload data: " + data_path.split('/')[-1].split('.')[0])
 
-
-if os.path.exists("../Data/datas.npy"):
+if os.path.exists("../Data/datas.npz") and os.path.exists("../Data/datas.pkl"):
+  print "0"
   # load datas
-  datas = np.load('../Data/datas.npy')
-  dates = np.load('../Data/dates.npy')
-  outfile = open('../Data/indexs.pkl', 'rb')
-  indexs = pickle.load(outfile)
-  outfile.close()
-  outfile = open('../Data/labels.pkl', 'rb')
-  labels = pickle.load(outfile)
-  outfile.close()
-  outfile = open('../Data/y_name.pkl', 'rb')
-  y_name = pickle.load(outfile)
-  outfile.close()
+  with np.load('../Data/datas.npz') as obj:
+    datas = obj['datas']
+    dates = obj['dates']
+
+  with open('../Data/datas.pkl', 'rb') as infile:
+    indexs = pickle.load(infile)
+    labels = pickle.load(infile)
+    y_name = pickle.load(infile)
+
 else:
+  print "1"
   # load datas
   labels, y_name = rf.read_label(label_path)
   dates, datas, indexs = rf.read_data(data_path, y_name, 0)
 
   # save datas
-  np.save('../Data/datas.npy', datas)
-  np.save('../Data/dates.npy', dates)
-  outfile = open('../Data/indexs.pkl', 'wb')
-  pickle.dump(indexs, outfile)
-  outfile.close()
-  outfile = open('../Data/labels.pkl', 'wb')
-  pickle.dump(labels, outfile)
-  outfile.close()
-  outfile = open('../Data/y_name.pkl', 'wb')
-  pickle.dump(y_name, outfile)
-  outfile.close()
+  np.savez('../Data/datas.npz', datas=datas, dates=dates)
+  with open('../Data/datas.pkl', 'wb') as outfile:
+    pickle.dump(indexs, outfile)
+    pickle.dump(labels, outfile)
+    pickle.dump(y_name, outfile)
 
 print("load %d data" % datas.shape[0])
 
@@ -126,7 +120,7 @@ def test_stationarity(train_data):
   print(dfoutput)
 
 y_log = np.log(y_train[:, 1].astype(float))
-
+"""
 test_stationarity(y_train[:, 1])
 y_avg = moving_average(y_log, 12)
 y_log_avg_diff = y_log[11:] - y_avg
@@ -188,8 +182,10 @@ plt.axhline(y=1.96/np.sqrt(len(y_log_diff)),linestyle='--',color='gray')
 plt.title('Partial Autocorrelation Function')
 plt.tight_layout()
 plt.show()
+"""
 
-# AR model
+"""
+# ARIMA model
 y_val_log =  np.log(y_val[:, 1].astype(float))
 history = [x for x in y_log]
 predictions = []
@@ -214,3 +210,56 @@ for t in range(y_val.shape[0]):
 print np.exp(y_val_log)
 print np.exp(np.array(predictions))
 print mae(np.exp(y_val_log), np.exp(np.array(predictions)))
+"""
+# ARIMA
+y_val_log =  np.log(y_data[:-3, 1].astype(float))
+history = [x for x in y_val_log[:3]]
+predictions = []
+
+for t in range(y_val_log.shape[0] - 3):
+  try:
+    model = ARIMA(history, order = (2, 1, 2))
+    model_fit = model.fit(disp = 1)
+    output = model_fit.forecast()
+    predictions.append(output[0][0])
+
+    
+  except:
+    predictions.append(np.mean(history[-5:]))
+    #print np.mean(history)
+
+  if np.isnan(predictions[t]):
+    predictions[t] = np.mean(history[-5:])
+
+  history.append(y_val_log[t+3])
+
+print np.exp(y_val_log).shape
+print np.exp(np.array(predictions)).shape
+print mae(np.exp(y_val_log)[3:], np.exp(np.array(predictions)))
+
+
+# SARIMAX
+"""
+y_val_log =  np.log(y_val[:, 1].astype(float))
+history = [x for x in y_log]
+predictions = []
+
+for t in range(y_val_log.shape[0]):
+  try:
+    model = SARIMAX(history, trend = 'n', order = (2, 1, 2), seasonal_order=(0,1,1,12))
+    model_fit = model.fit()
+    output = model_fit.forecast()
+    predictions.append(output[0][0])
+
+    
+  except:
+    predictions.append(np.mean(history[-5:]))
+    #print np.mean(history)
+
+  if np.isnan(predictions[t]):
+    predictions[t] = np.mean(history[-5:])
+
+  history.append(y_val_log[t])
+
+print mae(np.exp(y_val_log), np.exp(np.array(predictions)))
+"""
