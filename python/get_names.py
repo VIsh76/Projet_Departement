@@ -6,6 +6,8 @@ import numpy as np
 import argparse
 import os, sys
 import pickle
+import matplotlib.pyplot as plt
+
 
 data_path = "../Data_M[2005-2017].csv"
 label_path = "../Dico_M[2005-2017].csv"
@@ -73,9 +75,10 @@ def test():
     print("train: %d cases" % x_train.shape[0])
     print("val  : %d cases" % x_val.shape[0])
     print("\n----------------------------------------------")
-    k=20
+    k=10
+    j=1
     feature_eng = SelectKBest(mutual_info_regression, k)
-    x_train_new = feature_eng.fit_transform(x_train, y_train[:,0])
+    x_train_new = feature_eng.fit_transform(x_train, y_train[:,j])
     x_val_new = feature_eng.transform(x_val)
     print("keep %d feature" % k)
     print("\n----------------------------------------------")
@@ -89,5 +92,6 @@ def test():
     a = labels.set_index('Unnamed: 0')['def'].to_dict();
     for i in feat_selected:
         print(a[i])
-
+    print(feat_selected)
+    plt.plot(range(143),x_data[:,feat_selected])
 test()

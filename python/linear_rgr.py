@@ -8,10 +8,47 @@ import numpy as np
 import argparse
 import os, sys
 import cPickle as pickle
+from operator import itemgetter
+
 
 data_path = "../Data_M[2005-2017].csv"
 label_path = "../Dico_M[2005-2017].csv"
 
+def corr(x,y):
+    if(x.std(0)==0):
+        return 0
+    res=abs((x*y).mean(0)-x.mean(0)*y.mean(0))/(x.std(0)*y.std(0))
+    if(res>1):
+        return 0
+    else:
+        return res
+    
+def Corr(X,y):
+    res=[]
+    for i in range(X.shape[1]):
+        res.append([corr(X[:,i],y),i])
+    return res
+    
+def separate_train(X,y,k):
+    score=[[i,0] for i in range(X.shape[1])]
+    d=X.shape[0]/10        
+    r=X.shape[0]%10
+    for i in range(10):
+        if 10>i+r:
+            X2=X[(d*i):(d*(i+1)),:]
+            y2=y[(d*i):(d*(i+1))]
+        else:
+            X2=X[(d*i+r+i-10):(d*(i+1)+r+(i+1)-10),:]
+            y2=y[(d*i+r+i-10):(d*(i+1)+r+(i+1)-10)]
+        res=Corr(X2,y2)
+        res=sorted(res,key=itemgetter(0),reverse=True)
+        res=res[0:k]
+        for j in range(k):
+            score[res[j][1]][1]+=1+i
+    return score
+
+
+    
 
 def seperate_dataset(data_x, data_y, train_ratio):
   assert (train_ratio < 1 and train_ratio > 0), "The train ratio should be between 0 and 1."
@@ -84,9 +121,21 @@ print("\n----------------------------------------------")
 
 print("choose data...\n")
 k = 10
-feature_eng = SelectKBest(mutual_info_regression, k)
-x_train_new = feature_eng.fit_transform(x_train, y_train[:,1])
-x_val_new = feature_eng.transform(x_val)
+y=y_train[:, 1]
+
+
+score=separate_train(x_train,y,k)
+score=sorted(score,key=itemgetter(1),reverse=True)
+score=[i[0] for i in score]
+res=score[0:k]
+
+
+x_train_new=x_train[:,res]
+x_val_new=x_val[:,res]
+#feature_eng = SelectKBest(mutual_info_regression, k)
+
+#x_tain_new = feature_eng.fit_transform(x_train, y_train[:,1])
+#x_val_new = feature_eng.transform(x_val)
 print("keep %d feature" % k)
 print("\n----------------------------------------------")
 
@@ -101,7 +150,7 @@ print("score on val: %f" % mae(yhat_val, y_val[:, 1]))
 
 print(y_val[:, 1])
 print(yhat_val)
-
+"""
 print("\ntrain SVR model...\n")
 clf = SVR(C=1, epsilon=0.2)
 clf.fit(x_train_new, y_train[:, 1])
@@ -128,7 +177,7 @@ print(yhat_val)
 
 
 print("\ntrain elastique net model...\n")
-clf = ElasticNetCV(l1_ratio = [.5, .7, .9, .95, .99, 1], max_iter = 50000)
+clf = ElasticNetCV(l1_ratio = [.5, .7, .9, .95, .99, 1], max_iter = 1000)
 clf.fit(x_train_new, y_train[:, 1])
 yhat_train = clf.predict(x_train_new)
 yhat_val = clf.predict(x_val_new)
@@ -139,3 +188,4 @@ print('alpha = %f' % clf.alpha_)
 
 print(y_val[:, 1])
 print(yhat_val)
+"""

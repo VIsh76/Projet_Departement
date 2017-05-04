@@ -5,8 +5,8 @@ from bidict import bidict
 from scipy.stats import mode
 from sklearn.decomposition import PCA
 
-data_path = "../Data_M.csv"
-label_path = "../Dico_M.csv"
+data_path = "../Data_M[2005-2017].csv"
+label_path = "../Dico_M[2005-2017].csv"
 
 
 def read_data(fp_path, y_name, ratio):
@@ -22,6 +22,7 @@ def read_data(fp_path, y_name, ratio):
   '''
 
   fp_data = pd.read_csv(fp_path)
+  fp_data = fp_data.drop(fp_data.index[-3:])
   cols = np.array(fp_data.apply(num_missing, axis = 0))
   name_cols = np.array(fp_data.columns)
 
@@ -52,7 +53,7 @@ def read_label(fp_path):
   A function to read label files. It returns feature names which we have to predict.
   Input: fp_path - file path
   Output:
-    - fp_label: the whole label file
+    - fp_label: the whole label file:
     - y_name: a list contains the names of features to predict
   """
   fp_label = pd.read_csv(fp_path)
