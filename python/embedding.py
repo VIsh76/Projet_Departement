@@ -7,12 +7,14 @@ import os, sys
 import cPickle as pickle
 from bidict import bidict
 import pandas as pd
-
+import itertools
+from operator import itemgetter
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+import matplotlib.pyplot as plt
 
 data_path = "../Data_M[2005-2017].csv"
 label_path = "../Dico_M[2005-2017].csv"
@@ -28,6 +30,43 @@ def mae(y, yhat):
   yhat = yhat.reshape((1, -1))
   assert (y.shape == yhat.shape), "y and yhat should have same size"
   return np.mean(np.abs(yhat - y))
+
+def findsubsets(S,m):
+    return set(itertools.combinations(S, m))
+
+def separate_train(X,y,k):
+    score=[[i,0] for i in range(X.shape[1])]
+    d=X.shape[0]/10        
+    r=X.shape[0]%10
+    for i in range(10): 
+        if 10>i+r:
+            X2=X[(d*i):(d*(i+1)),:]
+            y2=y[(d*i):(d*(i+1))] 
+        else: 
+            X2=X[(d*i+r+i-10):(d*(i+1)+r+(i+1)-10),:]
+            y2=y[(d*i+r+i-10):(d*(i+1)+r+(i+1)-10)]
+        res=Corr(X2,y2)
+        res=sorted(res,key=itemgetter(0),reverse=True)
+        res=res[0:k]
+        for j in range(k):
+            score[res[j][1]][1]+=res[j][0]*np.sqrt(i+1)
+    return score
+
+
+def corr(x,y):
+    if(x.std(0)==0):
+        return 0
+    res=abs((x*y).mean(0)-x.mean(0)*y.mean(0))/(x.std(0)*y.std(0))
+    if(res>1):
+        return 0
+    else:
+        return res
+
+def Corr(X,y):
+    res=[]
+    for i in range(X.shape[1]):
+        res.append([corr(X[:,i],y),i])
+    return res
 
 #----------------- Load data-----------------#
 
@@ -83,14 +122,37 @@ for i in range(len(indexs) - len(y_index)):
 tf_index = np.array(tf_index)
 
 #----------------- Linear regression ----------------------#
-
-quantity = int(datas.shape[0] * 0.7)
+train_errors = []
+test_errors = []
+quantity = int(datas.shape[0] * 0.75)
 val_num = datas.shape[0] - quantity
 month_num = 3
-train_results = np.zeros((month_num + 2, quantity - month_num))
-valid_results = np.zeros((month_num + 2, val_num))
+train_results = np.zeros((month_num + 1, quantity - month_num))
+valid_results = np.zeros((month_num + 1, val_num))
 
-for i in range(month_num + 1):
+k = 10
+print("\nselect %d features..." % k)
+
+x_train, y_train, x_val, y_val = seperate_dataset(x_data, y_data, quantity, 2)
+feature_idx = []
+print("choose data...\n")
+feature_eng = SelectKBest(mutual_info_regression, 10)
+for j in range(k):
+    if np.sum(tf_index == j) > 0:
+        feature_eng.fit(x_train[:, tf_index == j], y_train)
+        feature_idx.append(np.where(tf_index == j)[0][np.argsort(feature_eng.scores_)[::-1][0]])
+feature_idx = np.array(feature_idx)
+
+
+"""
+score=separate_train(x_train[:, feature_idx],y_train,k)
+score=sorted(score,key=itemgetter(1),reverse=True)
+score=[i[0] for i in score]
+feature_idx=feature_idx[score[0:k]]
+"""
+
+
+for i in range(1, month_num + 1):
     print("\nseperate data for time %i...\n" % i)
     x_train, y_train, x_val, y_val = seperate_dataset(x_data, y_data, quantity, i)
     print x_train.shape
@@ -101,17 +163,6 @@ for i in range(month_num + 1):
     print("val  : %d cases" % x_val.shape[0])
     print("\n----------------------------------------------")
     
-
-    feature_idx = []
-    print("choose data...\n")
-    k = 50
-    feature_eng = SelectKBest(mutual_info_regression, 1)
-    for j in range(k):
-        if np.sum(tf_index == j) > 0:
-            feature_eng.fit(x_train[:, tf_index == j], y_train)
-            feature_idx.append(np.where(tf_index == j)[0][np.argmax(feature_eng.scores_)])
-
-    feature_idx = np.array(feature_idx)
     x_train_new = x_train[:, feature_idx]
     x_val_new = x_val[:, feature_idx]
 
@@ -124,13 +175,15 @@ for i in range(month_num + 1):
     yhat_train = clf.predict(x_train_new)
     yhat_val = clf.predict(x_val_new)
 
+    train_errors.append(mae(yhat_train, y_train))
+    test_errors.append(mae(yhat_val, y_val))
     print("score on train: %f" % mae(yhat_train, y_train))
     print("score on val: %f" % mae(yhat_val, y_val))
     print('l1_ratio = %f' % clf.l1_ratio_)
     print('alpha = %f' % clf.alpha_) 
 
-    train_results[i, :] = (yhat_train[month_num - i:]).reshape((1,-1))
-    valid_results[i, :] = yhat_val.reshape((1,-1))
+    train_results[i-1, :] = (yhat_train[month_num - i:]).reshape((1,-1))
+    valid_results[i-1, :] = yhat_val.reshape((1,-1))
 
 #---------------------- time series model --------------#
 
@@ -171,15 +224,19 @@ for t in range(y_log.shape[0] - month_num):
 
     history.append(y_log[month_num + t])
 
+test_errors.append(mae(np.exp(y_log[month_num:]), np.exp(np.array(time_results))))
 print mae(np.exp(y_log[month_num:]), np.exp(np.array(time_results)))
 print np.exp(np.array(time_results)).shape
-train_results[month_num+1, :] = np.exp(np.array(time_results[:quantity-month_num])).reshape((1, -1))
-valid_results[month_num+1, :] = np.exp(np.array(time_results[quantity-month_num:])).reshape((1, -1))
+train_results[month_num, :] = np.exp(np.array(time_results[:quantity-month_num])).reshape((1, -1))
+valid_results[month_num, :] = np.exp(np.array(time_results[quantity-month_num:])).reshape((1, -1))
 
 #------------------ embedding ----------------------#
 
-train_results = train_results[1:]
-valid_results = valid_results[1:]
+test_errors = np.array(test_errors)
+idx = np.where(test_errors < 25)[0]
+train_results = train_results[idx, :]
+valid_results = valid_results[idx, :]
+
 
 train_labels = y_data[month_num:quantity, 1]
 valid_labels = y_data[quantity:, 1]
@@ -195,5 +252,22 @@ yhat_val = valid_results.mean(0)
 
 print("score on train: %f" % mae(yhat_train, train_labels))
 print("score on val: %f" % mae(yhat_val, valid_labels))
-print('l1_ratio = %f' % clf.l1_ratio_)
-print('alpha = %f' % clf.alpha_) 
+#print('l1_ratio = %f' % clf.l1_ratio_)
+#print('alpha = %f' % clf.alpha_) 
+
+plt.figure(figsize=(8, 8))
+plt.plot(np.arange(len(valid_labels)), valid_labels, label='ground-truth', color='red')
+plt.plot(np.arange(len(valid_labels)), yhat_val, label='prediction', color='blue')
+plt.xlabel('t')
+plt.ylabel('y')
+plt.title('The final model')
+plt.legend()
+plt.grid()
+plt.show()
+
+_, _, dict_name = rf.read_label(label_path)
+for u in range(k):
+    print(feature_idx[u])
+    print(indexs.inv[feature_idx[u]])
+    print(dict_name[indexs.inv[feature_idx[u]]])
+

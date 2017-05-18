@@ -44,7 +44,7 @@ print len(var_tokens)
 tf_count = TfidfVectorizer(max_df=0.95, min_df=2, max_features=1000)
 tf = tf_count.fit_transform(var_tokens)
 
-kmeans = KMeans(n_clusters=50, random_state=0).fit(tf)
+kmeans = KMeans(n_clusters=10, random_state=0).fit(tf)
 _, count = np.unique(kmeans.labels_, return_counts=True)
 
 print count
@@ -54,9 +54,3 @@ tf_class = dict(zip(y_name, kmeans.labels_))
 
 with open('../Data/kmeans.pkl', 'wb') as outfile:
     pickle.dump(tf_class, outfile)
-
-
-
-
-
-
